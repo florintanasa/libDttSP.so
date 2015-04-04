@@ -35,6 +35,8 @@ Bridgewater, NJ 08807
 
 #include <common.h>
 
+
+
 ////////////////////////////////////////////////////////////////////////////
 // for commands affecting RX, which RX is Listening
 
@@ -1765,7 +1767,7 @@ sendcommand (char *buffer)
   DWORD NumWritten;
 //int NumWritten;
   if (strcmp (buffer, oldcommand) != 0)
-//    WriteFile (top.parm.fp, buffer, strlen (buffer), &NumWritten, NULL);
+  //  WriteFile (top.parm.fp, buffer, strlen (buffer), &NumWritten, NULL);
    write(top.parm.fp, buffer, strlen (buffer));
   //  fwrite(buffer, sizeof(buffer), 1, top.parm.fp);
     
@@ -1785,7 +1787,7 @@ Destroy_SDR (void)
   extern void closeup ();
   closeup ();
 }
-
+/*
 DttSP_EXP int
 SetMode (SDRMODE m)
 {
@@ -1794,6 +1796,59 @@ SetMode (SDRMODE m)
   sendcommand (buffer);
   return 0;
 }
+*/
+
+DttSP_EXP int
+SetMode (SDRMODE m)
+{
+	int rtn=0;
+	sem_wait(&top.sync.upd.sem);
+	tx.mode = m;
+//	if (tx.mode == LSB) tx.hlb.gen->invert = TRUE;
+//	else tx.hlb.gen->invert = FALSE;
+	rx[RL].mode = m;
+	if (m == SAM) rx[RL].am.gen->mode = 1;
+	if (m == AM) rx[RL].am.gen->mode = 0;
+	sem_post(&top.sync.upd.sem);
+	return rtn;
+}
+
+/*
+DttSP_EXP int
+SetMode (SDRMODE m)
+{
+  int n;
+  char **p;
+  sem_wait(&top.sync.upd.sem);
+  int mode = atoi (p[0]);
+  if (n > 1)
+    {
+      int trx = atoi (p[1]);
+      switch (trx)
+	{
+	case TX:
+	  tx.mode = mode;
+	  sem_post(&top.sync.upd.sem);
+	  break;
+	case RX:
+	default:
+	  rx[RL].mode = mode;
+	  sem_post(&top.sync.upd.sem);
+	  break;
+	}
+    }
+  else
+    tx.mode = rx[RL].mode = uni.mode.sdr = mode;
+  sem_post(&top.sync.upd.sem);
+  if (rx[RL].mode == AM)
+    rx[RL].am.gen->mode = AMdet;
+  sem_post(&top.sync.upd.sem);
+  if (rx[RL].mode == SAM)
+    rx[RL].am.gen->mode = SAMdet;
+  sem_post(&top.sync.upd.sem);
+  return 0;
+}
+*/
 
 DttSP_EXP void
 AudioReset (void)
@@ -1832,7 +1887,7 @@ SetRXOutputGain(double g)
 	sprintf(buffer,"!setRXOutputGain %lf\n",g);
 	sendcommand(buffer);
 }
-
+/*
 DttSP_EXP int
 SetOsc (double newfreq)
 {
@@ -1840,6 +1895,19 @@ SetOsc (double newfreq)
   sprintf (buffer, "!setOsc %lf 0\n", newfreq);
   sendcommand (buffer);
   return 0;
+}
+*/
+DttSP_EXP int
+SetOsc (double newfreq)
+{
+
+	if (fabs (newfreq) >= 0.5 * uni.samplerate)
+		return -1;
+	newfreq *= 2.0 * M_PI / uni.samplerate;
+	sem_wait(&top.sync.upd.sem);
+	rx[RL].osc.gen->Frequency = newfreq;
+	sem_post(&top.sync.upd.sem);
+	return 0;
 }
 
 DttSP_EXP int
