@@ -4,8 +4,8 @@ cmake_minimum_required(VERSION 2.8)
 project(libDttSP_project)
 
 include_directories(
-# any directories needed by the sources of the library
-/home/florin/code/DttSP
+#  any directories needed by the sources of the library
+/home/florin/git/libDttSP.so
 )
 
 set(SOURCES am_demod.c dttspagc.c keyerio.c resample.c splitfields.c banal.c
