@@ -225,8 +225,8 @@ process_updates_thread(void) {
   while (top.running) {
 //    pthread_testcancel();
 
-      //while (fgets(top.parm.buff, sizeof(top.parm.buff), top.parm.fp))
-      do_update(top.parm.buff, top.verbose ? top.echo.fp : 0);
+     // while (fgets(top.parm.buff, sizeof(top.parm.buff), top.parm.fd))
+      do_update(top.parm.buff, top.verbose ? stderr : 0);
   }
 
   pthread_exit(0);
